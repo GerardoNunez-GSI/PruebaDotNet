@@ -23,15 +23,14 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Clean
-      run: |
-        dotnet clean
-        dotnet nuget locals all --clear
+    - name: Restore dependencies
+      run: dotnet restore BlazorApp1.Client/BlazorApp1.Client.csproj
 
-    - name: Build and publish Client
-      run: |
-        dotnet build BlazorApp1.Client/BlazorApp1.Client.csproj -c Release --no-restore
-        dotnet publish BlazorApp1.Client/BlazorApp1.Client.csproj -c Release -o publish
+    - name: Build Client
+      run: dotnet build BlazorApp1.Client/BlazorApp1.Client.csproj -c Release --no-restore
+
+    - name: Publish Client
+      run: dotnet publish BlazorApp1.Client/BlazorApp1.Client.csproj -c Release -o publish
 
     - name: Prepare for GitHub Pages
       run: |
