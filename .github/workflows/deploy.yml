@@ -18,7 +18,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup .NET
+    - name: Setup .NET 8
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
@@ -28,23 +28,17 @@ jobs:
         dotnet clean
         dotnet nuget locals all --clear
 
-    - name: Restore and build
+    - name: Build and publish Client
       run: |
-        dotnet restore
-        dotnet build --configuration Release --no-restore
-
-    - name: Publish Blazor WASM
-      run: dotnet publish BlazorApp1.Client/BlazorApp1.Client.csproj -c Release -o publish
-
-    - name: List published files (para debug)
-      run: ls -la publish/wwwroot/_framework/
+        dotnet build BlazorApp1.Client/BlazorApp1.Client.csproj -c Release --no-restore
+        dotnet publish BlazorApp1.Client/BlazorApp1.Client.csproj -c Release -o publish
 
     - name: Prepare for GitHub Pages
       run: |
-        touch publish/wwwroot/.nojekyll
-        # Configurar base href para GitHub Pages
+        cd publish/wwwroot
+        touch .nojekyll
         REPO_NAME="${{ github.event.repository.name }}"
-        sed -i "s|<base href=\"/\" />|<base href=\"/$REPO_NAME/\" />|g" publish/wwwroot/index.html
+        sed -i "s|<base href=\"/\" />|<base href=\"/$REPO_NAME/\" />|g" index.html
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
