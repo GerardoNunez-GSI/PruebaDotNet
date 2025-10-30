@@ -23,11 +23,15 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore
+    - name: Clean
+      run: |
+        dotnet clean
+        dotnet nuget locals all --clear
 
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
+    - name: Restore and build
+      run: |
+        dotnet restore
+        dotnet build --configuration Release --no-restore
 
     - name: Publish Blazor WASM
       run: dotnet publish BlazorApp1.Client/BlazorApp1.Client.csproj -c Release -o publish
