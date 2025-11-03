@@ -5,7 +5,8 @@ on:
     branches: [ "master", "main" ]
   pull_request:
     branches: [ "master", "main" ]
-    types: [closed]
+    types:
+      - closed  # Solo se activa cuando se cierra un PR
 
 permissions:
   contents: read
@@ -14,41 +15,43 @@ permissions:
 
 jobs:
   build:
-    # Para push: siempre ejecutar, para PR: solo si fue merged
-    if: |
-      github.event_name == 'push' || 
+    # Solo ejecutar si:
+    # - Es un push a master/main
+    # - O si el PR fue mergeado (no solo cerrado)
+    if: >
+      github.event_name == 'push' ||
       (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup .NET 8
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore BlazorApp1.Client/BlazorApp1.Client.csproj
+      - name: Restore dependencies
+        run: dotnet restore BlazorApp1.Client/BlazorApp1.Client.csproj
 
-    - name: Build Client
-      run: dotnet build BlazorApp1.Client/BlazorApp1.Client.csproj -c Release --no-restore
+      - name: Build Client
+        run: dotnet build BlazorApp1.Client/BlazorApp1.Client.csproj -c Release --no-restore
 
-    - name: Publish Client
-      run: dotnet publish BlazorApp1.Client/BlazorApp1.Client.csproj -c Release -o publish
+      - name: Publish Client
+        run: dotnet publish BlazorApp1.Client/BlazorApp1.Client.csproj -c Release -o publish
 
-    - name: Prepare for GitHub Pages
-      run: |
-        cd publish/wwwroot
-        touch .nojekyll
-        REPO_NAME="${{ github.event.repository.name }}"
-        sed -i "s|<base href=\"/\" />|<base href=\"/$REPO_NAME/\" />|g" index.html
+      - name: Prepare for GitHub Pages
+        run: |
+          cd publish/wwwroot
+          touch .nojekyll
+          REPO_NAME="${{ github.event.repository.name }}"
+          sed -i "s|<base href=\"/\" />|<base href=\"/$REPO_NAME/\" />|g" index.html
 
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: publish/wwwroot
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: publish/wwwroot
 
   deploy:
     environment:
